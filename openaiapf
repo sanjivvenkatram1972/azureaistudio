@@ -1,0 +1,40 @@
+import os
+import openai
+import azure.functions as func
+
+# kindly note, insofar as I know, you can only run Azure Python Functions from commandline & not on VS Code. So kindly look at this link to do the same:
+# https://learn.microsoft.com/en-us/azure/azure-functions/create-first-function-cli-python?tabs=azure-cli%2Ccmd&pivots=python-mode-configuration
+
+def main(req: func.HttpRequest) -> func.HttpResponse:
+    openai.api_type = "azure"
+    openai.api_base = "https://droneai.openai.azure.com/"
+    openai.api_version = "2023-03-15-preview"
+    openai.api_key = "your key here"
+
+    # please refer to Azure AI Studio for references to parameters below
+    
+    engine = "mdl_gpt35turbo"
+    temperature = 0.1
+    max_tokens = 200
+    top_p = 0.95
+    frequency_penalty = 0
+    presence_penalty = 0
+    stop = None
+
+    system_message = "You are an AI assistant that helps people find information."
+    user_message = req.params.get('message')
+    messages = [{"role":"system","content":system_message},{"role":"user","content":user_message}]
+
+    response = openai.ChatCompletion.create(
+      engine=engine,
+      messages=messages,
+      temperature=temperature,
+      max_tokens=max_tokens,
+      top_p=top_p,
+      frequency_penalty=frequency_penalty,
+      presence_penalty=presence_penalty,
+      stop=stop
+    )
+
+    message = response.choices[0].message.content
+    return func.HttpResponse(message)
